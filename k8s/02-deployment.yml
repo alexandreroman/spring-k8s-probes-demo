@@ -1,0 +1,40 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+  namespace: spring-k8s-probes-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: app
+  template:
+    metadata:
+      labels:
+        role: app
+    spec:
+      containers:
+        - name: app
+          image: alexandreroman/spring-k8s-probes-demo
+          imagePullPolicy: Always
+          resources:
+            limits:
+              memory: 1Gi
+          ports:
+            - name: healthcheck
+              containerPort: 8080
+          readinessProbe:
+            # Readiness probe is used to check if this app is ready to serve traffic.
+            httpGet:
+              port: healthcheck
+              path: /actuator/health/readiness
+            initialDelaySeconds: 10
+          livenessProbe:
+            # Liveness probe is used to check if this app is responding to requests
+            # (after it is marked as "ready").
+            httpGet:
+              port: healthcheck
+              path: /actuator/health/liveness
+            initialDelaySeconds: 60
+            periodSeconds: 1
